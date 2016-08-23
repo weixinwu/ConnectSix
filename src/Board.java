@@ -80,7 +80,7 @@ public class Board extends JFrame {
 
 
 
-        char[][] board = cleanBoard(gameLevel);
+        char[][] board = cleanBoard(gameBoard);
 
 
 
@@ -89,7 +89,10 @@ public class Board extends JFrame {
         col = -1;
         printBoard(board);
         Scanner sc = new Scanner(System.in);
+        int i = 0;
         while (end(board)==0 && !checkBoardFull(board)){
+
+
             System.out.print("your input here:");
             row = sc.nextInt();
             col = sc.nextInt();
@@ -100,9 +103,19 @@ public class Board extends JFrame {
             }
             board[row][col]='O';
 
+
             System.out.println("computer turn");
-            setMove(board);
+            int score;
+            score = setMove(board,playerX);
+
+
             printBoard(board);
+
+            if (!(end(board)==0 && !checkBoardFull(board)))
+                break;
+
+
+
 
         }
         System.out.println("end"+end(board) + checkBoardFull(board));
@@ -112,29 +125,59 @@ public class Board extends JFrame {
 
     }
 
-    public static void setMove(char[][]board){
+    public static int setMove(char[][]board,int player){
+        if (end(board)!=0||checkBoardFull(board)){
+            return end(board);
+        }
+        Point p = null;
+        for (int i = 0 ; i < gameBoard;i++){
+            for (int j = 0 ; j < gameBoard;j++){
+                if (board[i][j]=='U'){
+                    if (player ==playerX) {
+                        board[i][j] = 'X';
+                        player=playerY;
+                    }
+                    else {
+                        board[i][j] = 'O';
+                        player = playerX;
+                    }
 
-        boolean isMoved = false;
-        for (int i = 0 ; i < gameLevel;i++){
-            for (int j = 0 ; j < gameLevel;j++) {
-                if (board[i][j] == 'U') {
-                    board[i][j] = 'X';
-                    char [][]tempB = getCopyBoard(board);
-                    int result = nextMove(tempB, playerY);
-                    if (result == playerY) {
-                        board[i][j] = 'U';
-                    } else if (result == 0) {
-                        board[i][j] = 'U';
+                    char [][]copyBoard = getCopyBoard(board);
+                    int result = setMove(copyBoard,player);
+                    //System.err.println("i :"+i +" and j :"+j+" result is :"+result);
+                    if (result == 0){
+                        p = new Point(i,j);
+                    }
+                    if (player ==playerX && result ==playerX){
+                        board[i][j]='U';
+                        player=playerY;
+                    }else if (player ==playerX && result == playerY){
+                        return playerY;
+                    }else if (player ==playerY && result ==playerY){
+                        board[i][j]='U';
+                        player=playerX;
+                    }else if (player==playerY && result == playerX){
+                        return playerX;
+                    }else {
 
-                    } else if (result == playerX){
+                        board[i][j]='U';
+                        if (player==playerY)
+                            player=playerX;
+                        else player = playerY;
+                        //todo handle code here
 
-                        isMoved = true;
-                        return;
                     }
                 }
             }
         }
-        chooseRandom(board);
+        if (p!=null) {
+            if (player == playerX)
+                board[p.x][p.y] = 'X';
+            else board[p.x][p.y] = 'Y';
+        }
+
+        return 0;
+
     }
     public static char[][] getCopyBoard(char [][]board){
         char [][]b = new char[board.length][];
@@ -160,46 +203,6 @@ public class Board extends JFrame {
         }
     }
 
-
-    public static int nextMove(char[][] board,int player){
-
-        if ( (end(board)!=0) ){
-
-            return end(board);
-        }else if (end(board)==0 &&checkBoardFull(board)){
-            return 0;
-        }else {
-            for (int i = 0 ; i < gameLevel;i++){
-                for (int j = 0 ; j < gameLevel;j++){
-                    if (board[i][j]=='U'){
-                        if (player==playerX){
-                            board[i][j]='X';
-                            player = playerY;
-                        }else if (player ==playerY) {
-                            board[i][j]='O';
-                            player = playerX;
-                        }
-                        int result = nextMove(board,player);
-                        if (player == playerX && result==playerY){
-                           // board[i][j]='U';
-                            return result;
-                        }
-                        else if (result == playerX &&player ==playerY){
-                            //board[i][j] = 'U';
-                            return playerX;
-                        }
-                        else {
-                            //board[i][j]='U';
-                            ;
-                        }
-
-                    }
-                }
-            }
-        }
-
-        return 0;
-    }
 
 
 
@@ -420,7 +423,7 @@ public class Board extends JFrame {
             board[i]= new char[size];
 
         for (int i = 0; i < board.length;i++){
-            board[i]= new char[gameLevel];
+            board[i]= new char[gameBoard];
             for (int j = 0 ; j < board.length;j++)
                 board[i][j]='U';
         }
